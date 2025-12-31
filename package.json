@@ -4,6 +4,7 @@
   "description": "Production-grade ERP system for embroidery factory operations",
   "main": "dist/server.js",
   "scripts": {
+    "postinstall": "cd client && npm install",
     "dev": "concurrently \"npm run server:simple\" \"npm run client:dev\"",
     "server:dev": "nodemon --exec ts-node src/server/server.ts",
     "server:simple": "nodemon src/server/simple-server.js",
