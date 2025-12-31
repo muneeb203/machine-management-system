@@ -9,17 +9,7 @@ const PORT = 3000;
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: [
-    'http://localhost:3001',
-    'https://embroidery-qhpmx3203-hadis-projects-cb40bef9.vercel.app',
-    'https://embroidery-qm4lhmrtx-hadis-projects-cb40bef9.vercel.app',
-    'https://embroidery-9pl6xpv85-hadis-projects-cb40bef9.vercel.app',
-    'https://embroidery-aq19jjkwt-hadis-projects-cb40bef9.vercel.app',
-    /https:\/\/embroidery.*\.vercel\.app$/
-  ],
-  credentials: true,
-}));
+app.use(cors());
 app.use(express.json());
 
 // In-memory data for testing (simulating database)
@@ -178,7 +168,7 @@ const authenticateToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, 'your-super-secret-jwt-key-change-in-production-minimum-32-characters-long');
     const user = users.find(u => u.id === decoded.userId && u.isActive);
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Invalid token' });
     }
@@ -221,12 +211,12 @@ app.get('/health', (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   try {
-    console.log('Login request received:', { 
-      body: req.body, 
+    console.log('Login request received:', {
+      body: req.body,
       origin: req.headers.origin,
       userAgent: req.headers['user-agent']
     });
-    
+
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -315,7 +305,7 @@ app.get('/api/production/daily/:date', authenticateToken, (req, res) => {
       machine: machines.find(m => m.id === p.machineId),
       design: designs.find(d => d.id === p.designId)
     }));
-  
+
   res.json({ data: dailyProduction });
 });
 
@@ -362,7 +352,7 @@ app.get('/api/admin/users', authenticateToken, requireAdmin, (req, res) => {
 
 app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
   const { username, email, password, role } = req.body;
-  
+
   const hashedPassword = await bcrypt.hash(password, 12);
   const newUser = {
     id: users.length + 1,
@@ -372,9 +362,9 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
     role,
     isActive: true
   };
-  
+
   users.push(newUser);
-  
+
   const safeUser = {
     id: newUser.id,
     username: newUser.username,
@@ -382,7 +372,7 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
     role: newUser.role,
     isActive: newUser.isActive
   };
-  
+
   res.status(201).json({ data: safeUser });
 });
 
@@ -393,9 +383,9 @@ app.get('/api/reports/dashboard', authenticateToken, (req, res) => {
   const todayProduction = productionEntries
     .filter(p => p.productionDate === today)
     .reduce((sum, p) => sum + p.actualStitches, 0);
-  
+
   const activeMachines = machines.filter(m => m.status === 'running').length;
-  
+
   res.json({
     data: {
       totalMachines: 22,
