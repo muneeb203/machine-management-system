@@ -34,7 +34,7 @@ import {
   FactCheck,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext.tsx';
+import { useAuth } from '../../contexts/AuthContext';
 
 const drawerWidth = 280;
 
@@ -60,60 +60,60 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     const moduleItems = [
       // Contract Management Module
-      { 
-        text: 'Contract Management', 
-        icon: <Assignment />, 
-        path: '/contracts', 
+      {
+        text: 'Contract Management',
+        icon: <Assignment />,
+        path: '/contracts',
         roles: ['admin', 'operator'],
         adminAccess: 'Create, edit, approve, close contracts',
         operatorAccess: 'View-only active contracts'
       },
-      
+
       // Machine Management Module
-      { 
-        text: 'Machine Management', 
-        icon: <PrecisionManufacturing />, 
-        path: '/machines', 
+      {
+        text: 'Machine Management',
+        icon: <PrecisionManufacturing />,
+        path: '/machines',
         roles: ['admin', 'operator'],
         adminAccess: 'Add/edit machines and status',
         operatorAccess: 'View machine list'
       },
-      
+
       // Daily Production Entry Module
-      { 
-        text: 'Daily Production', 
-        icon: <Engineering />, 
-        path: '/production', 
+      {
+        text: 'Daily Production',
+        icon: <Engineering />,
+        path: '/production',
         roles: ['admin', 'operator'],
         adminAccess: 'Edit entries, approve backdated data',
         operatorAccess: 'Enter same-day production only'
       },
-      
+
       // Billing Automation Module
-      { 
-        text: 'Billing & Invoicing', 
-        icon: <AttachMoney />, 
-        path: '/billing', 
+      {
+        text: 'Billing & Invoicing',
+        icon: <AttachMoney />,
+        path: '/billing',
         roles: ['admin', 'operator'],
         adminAccess: 'Approve, export billing',
         operatorAccess: 'View-only summaries'
       },
-      
+
       // Gate Pass & Inventory Module
-      { 
-        text: 'Gate Pass & Inventory', 
-        icon: <Inventory2 />, 
-        path: '/gate-passes', 
+      {
+        text: 'Gate Pass & Inventory',
+        icon: <Inventory2 />,
+        path: '/gate-passes',
         roles: ['admin', 'operator'],
         adminAccess: 'Create/finalize gate passes',
         operatorAccess: 'View-only'
       },
-      
+
       // Reports & Dashboard Module
-      { 
-        text: 'Reports & Analytics', 
-        icon: <Assessment />, 
-        path: '/reports', 
+      {
+        text: 'Reports & Analytics',
+        icon: <Assessment />,
+        path: '/reports',
         roles: ['admin', 'operator'],
         adminAccess: 'Full reporting & exports',
         operatorAccess: 'Limited dashboards'
@@ -133,7 +133,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     ];
 
     const allItems = [...baseItems, ...moduleItems];
-    
+
     if (user?.role === 'admin') {
       allItems.push(...adminItems, ...programmerItems);
     } else if (user?.role === 'programmer') {
@@ -166,24 +166,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Typography>
         </Box>
       </Toolbar>
-      
+
       <Divider />
-      
+
       {/* User Info */}
       <Box sx={{ p: 2, textAlign: 'center' }}>
         <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
           {user?.username}
         </Typography>
-        <Chip 
-          label={user?.role?.toUpperCase()} 
-          size="small" 
+        <Chip
+          label={user?.role?.toUpperCase()}
+          size="small"
           color={getRoleColor(user?.role || '')}
           sx={{ mt: 1 }}
         />
       </Box>
-      
+
       <Divider />
-      
+
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
@@ -201,7 +201,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               }}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText 
+              <ListItemText
                 primary={item.text}
                 primaryTypographyProps={{ fontSize: '0.9rem' }}
               />
@@ -209,15 +209,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </ListItem>
         ))}
       </List>
-      
+
       <Divider sx={{ mt: 2 }} />
-      
+
       {/* Role-based access info */}
       <Box sx={{ p: 2 }}>
         <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 'bold' }}>
-          Access Level: {user?.role === 'admin' ? 'Full System Control' : 
-                        user?.role === 'operator' ? 'Production Operations' : 
-                        'Programming & Scheduling'}
+          Access Level: {user?.role === 'admin' ? 'Full System Control' :
+            user?.role === 'operator' ? 'Production Operations' :
+              'Programming & Scheduling'}
         </Typography>
       </Box>
     </div>
@@ -246,12 +246,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {menuItems.find(item => item.path === location.pathname)?.text || 'Embroidery Factory ERP'}
           </Typography>
-          
+
           {/* Current date and time */}
           <Typography variant="body2" sx={{ mr: 2 }}>
             {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
           </Typography>
-          
+
           <Button
             color="inherit"
             onClick={logout}
@@ -261,7 +261,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Button>
         </Toolbar>
       </AppBar>
-      
+
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
@@ -291,7 +291,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {drawer}
         </Drawer>
       </Box>
-      
+
       <Box
         component="main"
         sx={{
