@@ -1,28 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import api from '../apiClient';
 
-// Create axios instance with base configuration
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
-// Add request interceptor to include auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 interface User {
   id: number;
@@ -62,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setToken(storedToken);
-      
+
       // Verify token and get user info
       api.get('/api/auth/me')
         .then(response => {
@@ -82,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (username: string, password: string) => {
     try {
       console.log('Attempting login with:', { username, apiBaseURL: api.defaults.baseURL });
-      
+
       const response = await api.post('/api/auth/login', {
         username,
         password,
@@ -91,7 +70,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Login response:', response.data);
 
       const { token: newToken, user: userData } = response.data;
-      
+
       setToken(newToken);
       setUser(userData);
       localStorage.setItem('token', newToken);

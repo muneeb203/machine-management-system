@@ -14,20 +14,9 @@ import {
   Inventory,
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
-import axios from 'axios';
+import api from '../apiClient';
 
-// Simple axios instance for API calls
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: { 'Content-Type': 'application/json' }
-});
 
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 interface DashboardStats {
   totalMachines: number;
@@ -80,7 +69,7 @@ const Dashboard: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
-      
+
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
@@ -90,7 +79,7 @@ const Dashboard: React.FC = () => {
             color="#1976d2"
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Active Contracts"
@@ -99,7 +88,7 @@ const Dashboard: React.FC = () => {
             color="#2e7d32"
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Today's Production"
@@ -108,7 +97,7 @@ const Dashboard: React.FC = () => {
             color="#ed6c02"
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Pending Billing"
@@ -130,7 +119,7 @@ const Dashboard: React.FC = () => {
             </Typography>
           </Paper>
         </Grid>
-        
+
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>

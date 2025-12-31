@@ -28,20 +28,9 @@ import {
   Calculate,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import axios from 'axios';
+import api from '../apiClient';
 
-// Simple axios instance for API calls
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: { 'Content-Type': 'application/json' }
-});
 
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 interface RateElement {
   id: number;
@@ -97,7 +86,7 @@ const RateManagement: React.FC = () => {
     const selectedElements = rateElements?.filter(r => r.name !== 'Base Rate') || [];
     const totalElementRate = selectedElements.reduce((sum, r) => sum + r.ratePerStitch, 0);
     const effectiveRate = baseRate + totalElementRate;
-    
+
     return {
       baseRate,
       elementRate: totalElementRate,
@@ -117,7 +106,7 @@ const RateManagement: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Rate & Pricing Management
       </Typography>
-      
+
       <Typography variant="body1" color="textSecondary" gutterBottom>
         Admin Access: Define base and element rates, lock rates for billing
       </Typography>
@@ -133,7 +122,7 @@ const RateManagement: React.FC = () => {
             <Calculate sx={{ mr: 1, verticalAlign: 'middle' }} />
             Rate Calculation Preview (50,000 stitches)
           </Typography>
-          
+
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
               <Box textAlign="center">
@@ -145,7 +134,7 @@ const RateManagement: React.FC = () => {
                 </Typography>
               </Box>
             </Grid>
-            
+
             <Grid item xs={12} sm={6} md={3}>
               <Box textAlign="center">
                 <Typography variant="h4" color="secondary">
@@ -156,7 +145,7 @@ const RateManagement: React.FC = () => {
                 </Typography>
               </Box>
             </Grid>
-            
+
             <Grid item xs={12} sm={6} md={3}>
               <Box textAlign="center">
                 <Typography variant="h4" color="success.main">
@@ -167,7 +156,7 @@ const RateManagement: React.FC = () => {
                 </Typography>
               </Box>
             </Grid>
-            
+
             <Grid item xs={12} sm={6} md={3}>
               <Box textAlign="center">
                 <Typography variant="h4" color="error.main">
@@ -201,7 +190,7 @@ const RateManagement: React.FC = () => {
               Add Rate Element
             </Button>
           </Box>
-          
+
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -228,7 +217,7 @@ const RateManagement: React.FC = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Chip 
+                      <Chip
                         label={rate.isActive ? 'Active' : 'Inactive'}
                         color={rate.isActive ? 'success' : 'default'}
                         size="small"
@@ -283,7 +272,7 @@ const RateManagement: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, ratePerStitch: parseFloat(e.target.value) })}
             inputProps={{ step: 0.000001, min: 0 }}
           />
-          
+
           {formData.ratePerStitch > 0 && (
             <Alert severity="info" sx={{ mt: 2 }}>
               Impact on 50,000 stitches: <strong>${(formData.ratePerStitch * 50000).toFixed(2)}</strong>
@@ -292,8 +281,8 @@ const RateManagement: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             variant="contained"
             disabled={!formData.name || formData.ratePerStitch <= 0}
           >

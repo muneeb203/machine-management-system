@@ -34,20 +34,9 @@ import {
   PrecisionManufacturing,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import axios from 'axios';
+import api from '../apiClient';
 
-// Simple axios instance for API calls
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: { 'Content-Type': 'application/json' }
-});
 
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 interface User {
   id: number;
@@ -111,13 +100,13 @@ const UserManagement: React.FC = () => {
 
   const getRoleDescription = (role: string) => {
     switch (role) {
-      case 'admin': 
+      case 'admin':
         return 'Full system control, configuration, approvals, and audits';
-      case 'programmer': 
+      case 'programmer':
         return 'Programming assignments, scheduling, and production planning';
-      case 'operator': 
+      case 'operator':
         return 'Daily production entry, same-day data only';
-      default: 
+      default:
         return 'Unknown role';
     }
   };
@@ -137,7 +126,7 @@ const UserManagement: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         User & Role Management
       </Typography>
-      
+
       <Typography variant="body1" color="textSecondary" gutterBottom>
         Admin Access: Create, edit, deactivate users and assign roles and permissions
       </Typography>
@@ -161,7 +150,7 @@ const UserManagement: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={4}>
           <Card>
             <CardContent>
@@ -179,7 +168,7 @@ const UserManagement: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={4}>
           <Card>
             <CardContent>
@@ -217,7 +206,7 @@ const UserManagement: React.FC = () => {
               Add User
             </Button>
           </Box>
-          
+
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -248,14 +237,14 @@ const UserManagement: React.FC = () => {
                     </TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
-                      <Chip 
+                      <Chip
                         label={user.role.toUpperCase()}
                         color={getRoleColor(user.role)}
                         size="small"
                       />
                     </TableCell>
                     <TableCell>
-                      <Chip 
+                      <Chip
                         label={user.isActive ? 'Active' : 'Inactive'}
                         color={user.isActive ? 'success' : 'default'}
                         size="small"
@@ -289,7 +278,7 @@ const UserManagement: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Role Permissions Reference
           </Typography>
-          
+
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
               <Alert severity="error" sx={{ height: '100%' }}>
@@ -298,16 +287,16 @@ const UserManagement: React.FC = () => {
                   Administrator
                 </Typography>
                 <Typography variant="body2">
-                  • Full system access<br/>
-                  • Rate management<br/>
-                  • User management<br/>
-                  • Billing approval<br/>
-                  • System configuration<br/>
+                  • Full system access<br />
+                  • Rate management<br />
+                  • User management<br />
+                  • Billing approval<br />
+                  • System configuration<br />
                   • All reports and exports
                 </Typography>
               </Alert>
             </Grid>
-            
+
             <Grid item xs={12} md={4}>
               <Alert severity="info" sx={{ height: '100%' }}>
                 <Typography variant="subtitle2" gutterBottom>
@@ -315,15 +304,15 @@ const UserManagement: React.FC = () => {
                   Programmer
                 </Typography>
                 <Typography variant="body2">
-                  • Contract/design management<br/>
-                  • Programming assignments<br/>
-                  • Production planning<br/>
-                  • Schedule control<br/>
+                  • Contract/design management<br />
+                  • Programming assignments<br />
+                  • Production planning<br />
+                  • Schedule control<br />
                   • View reports
                 </Typography>
               </Alert>
             </Grid>
-            
+
             <Grid item xs={12} md={4}>
               <Alert severity="success" sx={{ height: '100%' }}>
                 <Typography variant="subtitle2" gutterBottom>
@@ -331,11 +320,11 @@ const UserManagement: React.FC = () => {
                   Operator
                 </Typography>
                 <Typography variant="body2">
-                  • Daily production entry<br/>
-                  • Same-day data only<br/>
-                  • View active contracts<br/>
-                  • View machine list<br/>
-                  • Limited dashboards<br/>
+                  • Daily production entry<br />
+                  • Same-day data only<br />
+                  • View active contracts<br />
+                  • View machine list<br />
+                  • Limited dashboards<br />
                   • Request overrides
                 </Typography>
               </Alert>
@@ -358,7 +347,7 @@ const UserManagement: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             sx={{ mb: 2 }}
           />
-          
+
           <TextField
             margin="dense"
             label="Email"
@@ -369,7 +358,7 @@ const UserManagement: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             sx={{ mb: 2 }}
           />
-          
+
           <TextField
             margin="dense"
             label="Password"
@@ -380,7 +369,7 @@ const UserManagement: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             sx={{ mb: 2 }}
           />
-          
+
           <FormControl fullWidth variant="outlined">
             <InputLabel>Role</InputLabel>
             <Select
@@ -393,7 +382,7 @@ const UserManagement: React.FC = () => {
               <MenuItem value="operator">Operator</MenuItem>
             </Select>
           </FormControl>
-          
+
           {formData.role && (
             <Alert severity="info" sx={{ mt: 2 }}>
               <strong>{formData.role.toUpperCase()}:</strong> {getRoleDescription(formData.role)}
@@ -402,8 +391,8 @@ const UserManagement: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             variant="contained"
             disabled={!formData.username || !formData.email || !formData.password || !formData.role}
           >

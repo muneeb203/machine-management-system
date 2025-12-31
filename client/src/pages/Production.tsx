@@ -29,21 +29,10 @@ import {
   WbSunny,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import axios from 'axios';
+import api from '../apiClient';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
-// Simple axios instance for API calls
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: { 'Content-Type': 'application/json' }
-});
 
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 interface ProductionEntry {
   id: number;
@@ -151,10 +140,10 @@ const Production: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Daily Production Entry
       </Typography>
-      
+
       <Typography variant="body1" color="textSecondary" gutterBottom>
-        {user?.role === 'admin' 
-          ? 'Admin Access: Edit entries, approve backdated data' 
+        {user?.role === 'admin'
+          ? 'Admin Access: Edit entries, approve backdated data'
           : 'Operator Access: Enter same-day production only'}
       </Typography>
 
@@ -174,7 +163,7 @@ const Production: React.FC = () => {
                 disabled={user?.role === 'operator' && selectedDate !== new Date().toISOString().split('T')[0]}
               />
             </Grid>
-            
+
             <Grid item xs={12} sm={6} md={3}>
               <Box display="flex" alignItems="center">
                 <WbSunny color="warning" sx={{ mr: 1 }} />
@@ -184,7 +173,7 @@ const Production: React.FC = () => {
                 </Box>
               </Box>
             </Grid>
-            
+
             <Grid item xs={12} sm={6} md={3}>
               <Box display="flex" alignItems="center">
                 <NightsStay color="info" sx={{ mr: 1 }} />
@@ -194,7 +183,7 @@ const Production: React.FC = () => {
                 </Box>
               </Box>
             </Grid>
-            
+
             <Grid item xs={12} sm={6} md={3}>
               <Box display="flex" alignItems="center">
                 <Today color="primary" sx={{ mr: 1 }} />
@@ -215,7 +204,7 @@ const Production: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               Add Production Entry
             </Typography>
-            
+
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={2}>
                 <FormControl fullWidth>
@@ -233,7 +222,7 @@ const Production: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              
+
               <Grid item xs={12} sm={6} md={2}>
                 <FormControl fullWidth>
                   <InputLabel>Shift</InputLabel>
@@ -247,7 +236,7 @@ const Production: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              
+
               <Grid item xs={12} sm={6} md={2}>
                 <TextField
                   label="Actual Stitches"
@@ -257,7 +246,7 @@ const Production: React.FC = () => {
                   onChange={(e) => setNewEntry({ ...newEntry, actualStitches: e.target.value })}
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={6} md={2}>
                 <TextField
                   label="Repeats Completed"
@@ -267,7 +256,7 @@ const Production: React.FC = () => {
                   onChange={(e) => setNewEntry({ ...newEntry, repeatsCompleted: e.target.value })}
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={6} md={2}>
                 <TextField
                   label="Operator Name"
@@ -276,7 +265,7 @@ const Production: React.FC = () => {
                   onChange={(e) => setNewEntry({ ...newEntry, operatorName: e.target.value })}
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={6} md={2}>
                 <Button
                   variant="contained"
@@ -306,7 +295,7 @@ const Production: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Production Entries for {new Date(selectedDate).toLocaleDateString()}
           </Typography>
-          
+
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -328,15 +317,15 @@ const Production: React.FC = () => {
                       <Box display="flex" alignItems="center">
                         <Engineering sx={{ mr: 1 }} />
                         Machine {entry.machine?.machineNumber}
-                        <Chip 
-                          label={`M${entry.machine?.masterGroup}`} 
-                          size="small" 
+                        <Chip
+                          label={`M${entry.machine?.masterGroup}`}
+                          size="small"
                           sx={{ ml: 1 }}
                         />
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Chip 
+                      <Chip
                         label={entry.shift.toUpperCase()}
                         color={entry.shift === 'day' ? 'warning' : 'info'}
                         size="small"
@@ -360,7 +349,7 @@ const Production: React.FC = () => {
               </TableBody>
             </Table>
           </TableContainer>
-          
+
           {(!dailyProduction || dailyProduction.length === 0) && (
             <Box textAlign="center" py={4}>
               <Typography color="textSecondary">

@@ -22,21 +22,10 @@ import {
   Settings,
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
-import axios from 'axios';
+import api from '../apiClient';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
-// Simple axios instance for API calls
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: { 'Content-Type': 'application/json' }
-});
 
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 interface Machine {
   id: number;
@@ -50,7 +39,7 @@ interface Machine {
 
 const Machines: React.FC = () => {
   const { user } = useAuth();
-  
+
   const { data: machines, isLoading } = useQuery<Machine[]>(
     'machines',
     async () => {
@@ -89,10 +78,10 @@ const Machines: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Machine Management
       </Typography>
-      
+
       <Typography variant="body1" color="textSecondary" gutterBottom>
-        {user?.role === 'admin' 
-          ? 'Full control: Add/edit machines and status' 
+        {user?.role === 'admin'
+          ? 'Full control: Add/edit machines and status'
           : 'View-only: Machine list and status'}
       </Typography>
 
@@ -115,7 +104,7 @@ const Machines: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
@@ -133,7 +122,7 @@ const Machines: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
@@ -151,7 +140,7 @@ const Machines: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
@@ -177,7 +166,7 @@ const Machines: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Machine Status Overview
           </Typography>
-          
+
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -201,14 +190,14 @@ const Machines: React.FC = () => {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Chip 
+                      <Chip
                         label={`Master ${machine.masterGroup}`}
                         color={getMasterGroupColor(machine.masterGroup)}
                         size="small"
                       />
                     </TableCell>
                     <TableCell>
-                      <Chip 
+                      <Chip
                         label={machine.status.toUpperCase()}
                         color={getStatusColor(machine.status)}
                         size="small"
@@ -241,7 +230,7 @@ const Machines: React.FC = () => {
         {[1, 2, 3].map(group => {
           const groupMachines = machines?.filter(m => m.masterGroup === group) || [];
           const groupRunning = groupMachines.filter(m => m.status === 'running').length;
-          
+
           return (
             <Grid item xs={12} md={4} key={group}>
               <Card>

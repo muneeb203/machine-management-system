@@ -27,21 +27,10 @@ import {
   Edit,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import axios from 'axios';
+import api from '../apiClient';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
-// Simple axios instance for API calls
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: { 'Content-Type': 'application/json' }
-});
 
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
 
 interface Contract {
   id: number;
@@ -119,10 +108,10 @@ const Contracts: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Contract Management
       </Typography>
-      
+
       <Typography variant="body1" color="textSecondary" gutterBottom>
-        {user?.role === 'admin' 
-          ? 'Admin Access: Create, edit, approve, close contracts and define rates' 
+        {user?.role === 'admin'
+          ? 'Admin Access: Create, edit, approve, close contracts and define rates'
           : 'Operator Access: View-only active contracts'}
       </Typography>
 
@@ -145,7 +134,7 @@ const Contracts: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
@@ -182,7 +171,7 @@ const Contracts: React.FC = () => {
               </Button>
             )}
           </Box>
-          
+
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -211,7 +200,7 @@ const Contracts: React.FC = () => {
                     <TableCell>{new Date(contract.startDate).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(contract.endDate).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <Chip 
+                      <Chip
                         label={contract.status.toUpperCase()}
                         color={getStatusColor(contract.status)}
                         size="small"
@@ -258,7 +247,7 @@ const Contracts: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, contractNumber: e.target.value })}
               />
             </Grid>
-            
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Party Name"
@@ -268,7 +257,7 @@ const Contracts: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, partyName: e.target.value })}
               />
             </Grid>
-            
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="PO Number"
@@ -278,7 +267,7 @@ const Contracts: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, poNumber: e.target.value })}
               />
             </Grid>
-            
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Collection Name"
@@ -288,7 +277,7 @@ const Contracts: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, collectionName: e.target.value })}
               />
             </Grid>
-            
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Start Date"
@@ -300,7 +289,7 @@ const Contracts: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
               />
             </Grid>
-            
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="End Date"
@@ -316,8 +305,8 @@ const Contracts: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             variant="contained"
             disabled={!formData.contractNumber || !formData.partyName}
           >
