@@ -12,7 +12,5 @@
       "destination": "/client/build/$1"
     }
   ],
-  "env": {
-    "REACT_APP_API_BASE_URL": "https://806d0f0c7e00.ngrok-free.app"
-  }
+  "env": {}
 }
