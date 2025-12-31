@@ -3,7 +3,8 @@ import axios from 'axios';
 // Configure API base URL
 // In production (Vercel), we must use relative path '' to route via proxy
 // In development, we fallback to localhost:3000
-const API_BASE_URL = process.env.NODE_ENV === 'production'
+const isVercel = window.location.hostname.includes('vercel.app');
+const API_BASE_URL = isVercel
   ? ''
   : (process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000');
 
