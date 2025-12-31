@@ -106,21 +106,21 @@ const Login: React.FC = () => {
             >
               {loading ? 'Signing In...' : 'Sign In'}
             </Button>
+
+
           </Box>
 
-      </Box>
-
-      {/* Debug Info */}
-      <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1, fontSize: '0.75rem', fontFamily: 'monospace' }}>
-        <Typography variant="caption" display="block" color="error" sx={{ fontWeight: 'bold', mb: 1 }}>
-          Debugging Info
-        </Typography>
-        <div>Host: {window.location.hostname}</div>
-        <div>Protocol: {window.location.protocol}</div>
-        <div>API Base: {window.location.hostname.includes('vercel.app') ? '(relative)' : 'http://localhost:3000'}</div>
-        <div>Environment: {process.env.NODE_ENV}</div>
-      </Box>
-    </Paper>
+          {/* Debug Info */}
+          <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1, fontSize: '0.75rem', fontFamily: 'monospace' }}>
+            <Typography variant="caption" display="block" color="error" sx={{ fontWeight: 'bold', mb: 1 }}>
+              Debugging Info
+            </Typography>
+            <div>Host: {window.location.hostname}</div>
+            <div>Protocol: {window.location.protocol}</div>
+            <div>API Base: {window.location.hostname.includes('vercel.app') ? '(relative)' : 'http://localhost:3000'}</div>
+            <div>Environment: {process.env.NODE_ENV}</div>
+          </Box>
+        </Paper>
       </Box >
     </Container >
   );
