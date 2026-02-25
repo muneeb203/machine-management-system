@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from '../../database/connection';
@@ -25,7 +25,7 @@ const registerSchema = Joi.object({
  * POST /api/auth/login
  * User login
  */
-router.post('/login', asyncHandler(async (req, res) => {
+router.post('/login', asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
   const { error } = loginSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ error: 'Invalid input' });
@@ -53,7 +53,7 @@ router.post('/login', asyncHandler(async (req, res) => {
   const token = jwt.sign(
     { userId: user.id },
     config.jwt.secret,
-    { expiresIn: config.jwt.expiresIn }
+    { expiresIn: config.jwt.expiresIn } as any
   );
 
   res.json({
@@ -71,7 +71,7 @@ router.post('/login', asyncHandler(async (req, res) => {
  * POST /api/auth/register
  * User registration (Admin only in production)
  */
-router.post('/register', asyncHandler(async (req, res) => {
+router.post('/register', asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
   const { error } = registerSchema.validate(req.body);
   if (error) {
     return res.status(400).json({
@@ -87,7 +87,7 @@ router.post('/register', asyncHandler(async (req, res) => {
 
   // Check if user already exists
   const existingUser = await db('users')
-    .where(function() {
+    .where(function () {
       this.where('username', username).orWhere('email', email);
     })
     .whereNull('deleted_at')
@@ -123,7 +123,7 @@ router.post('/register', asyncHandler(async (req, res) => {
  * GET /api/auth/me
  * Get current user info
  */
-router.get('/me', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.get('/me', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: ExpressResponse) => {
   res.json({ user: req.user });
 }));
 
@@ -131,7 +131,7 @@ router.get('/me', authenticateToken, asyncHandler(async (req: AuthenticatedReque
  * POST /api/auth/change-password
  * Change user password
  */
-router.post('/change-password', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.post('/change-password', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: ExpressResponse) => {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {

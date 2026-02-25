@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateToken, requireInventoryClerk, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
 import { db, withTransaction, logAudit } from '../../database/connection';
 
@@ -8,202 +8,260 @@ router.use(authenticateToken);
 
 /**
  * GET /api/gate-passes
- * Get all gate passes with pagination
+ * Get all gate passes with pagination and filtering
  */
 router.get('/', asyncHandler(async (req: AuthenticatedRequest, res) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;
+  const type = req.query.type as string; // Inward or Outward
   const status = req.query.status as string;
+  const collection = req.query.collection as string;
 
-  let query = db('gate_passes')
-    .leftJoin('contracts', 'gate_passes.contract_id', 'contracts.id')
-    .whereNull('gate_passes.deleted_at');
+  // 1. Base Query (Joins & Filters only)
+  // Don't add SELECT or ORDER BY here to keep the count query clean
+  let baseQuery = db('GatePass')
+    .leftJoin('Contract', 'GatePass.ContractID', 'Contract.ContractID');
 
+  if (type) {
+    baseQuery = baseQuery.where('GatePass.Type', type);
+  }
   if (status) {
-    query = query.where('gate_passes.status', status);
+    baseQuery = baseQuery.where('GatePass.Status', status);
+  }
+  if (collection) {
+    baseQuery = baseQuery.whereExists(function () {
+      this.select('*')
+        .from('ContractItem')
+        .whereRaw('ContractItem.ContractID = Contract.ContractID')
+        .andWhere('ContractItem.Collection', 'like', `%${collection}%`);
+    });
   }
 
-  const total = await query.clone().count('gate_passes.id as count').first();
+  // 2. Count Total (Clean query, no random selects)
+  const totalResult = await baseQuery.clone().count('GatePass.GatePassID as count').first();
+  const total = parseInt(String(totalResult?.count || '0'));
 
-  const gatePasses = await query
+  // 3. Fetch Data (Apply selects, sorts, pagination)
+  const data = await baseQuery
     .select(
-      'gate_passes.*',
-      'contracts.contract_number'
+      'GatePass.*',
+      'Contract.ContractNo'
     )
-    .orderBy('gate_passes.created_at', 'desc')
+    .orderBy('GatePass.PassDate', 'desc')
     .limit(limit)
     .offset((page - 1) * limit);
 
   res.json({
-    data: gatePasses,
+    data,
     pagination: {
       page,
       limit,
-      total: parseInt(total?.count || '0'),
-      totalPages: Math.ceil(parseInt(total?.count || '0') / limit),
+      total,
+      totalPages: Math.ceil(total / limit),
     },
   });
+}));
+
+/**
+ * GET /api/gate-passes/:id
+ * Get single gate pass with items
+ */
+router.get('/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const id = parseInt(req.params.id);
+
+  const gatePass = await db('GatePass')
+    .leftJoin('Contract', 'GatePass.ContractID', 'Contract.ContractID')
+    .where('GatePass.GatePassID', id)
+    .select('GatePass.*', 'Contract.ContractNo', 'Contract.PONumber')
+    .first();
+
+  if (!gatePass) {
+    return res.status(404).json({ error: 'Gate Pass not found' });
+  }
+
+  const items = await db('GatePassItem').where('GatePassID', id);
+
+  res.json({ data: { ...gatePass, items } });
 }));
 
 /**
  * POST /api/gate-passes
  * Create new gate pass
  */
-router.post('/', requireInventoryClerk, asyncHandler(async (req: AuthenticatedRequest, res) => {
+router.post('/', asyncHandler(async (req: AuthenticatedRequest, res) => {
   const {
-    gatePassNumber,
-    partyName,
-    poNumber,
-    contractId,
-    passType,
-    totalGazana,
+    type, // 'Inward' | 'Outward'
     passDate,
+    contractId,
+    carrierName,
+    vehicleNumber,
+    driverName,
+    remarks,
+    items // Array of { description, quantity, unit, itemType }
   } = req.body;
 
-  const gatePass = await withTransaction(async (trx) => {
-    // Check if gate pass number already exists
-    const existing = await trx('gate_passes')
-      .where('gate_pass_number', gatePassNumber)
-      .whereNull('deleted_at')
-      .first();
+  if (!type || !passDate || !items || items.length === 0) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
 
-    if (existing) {
-      throw new Error('Gate pass number already exists');
-    }
+  // Generate a simple Pass Number (e.g., GP-{Year}-{Random})
+  const year = new Date().getFullYear();
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const passNumber = `GP-${type.substring(0, 3).toUpperCase()}-${year}-${random}`;
 
-    const [inserted] = await trx('gate_passes')
-      .insert({
-        gate_pass_number: gatePassNumber,
-        party_name: partyName,
-        po_number: poNumber,
-        contract_id: contractId,
-        pass_type: passType,
-        total_gazana: totalGazana,
-        pass_date: new Date(passDate),
-        status: 'pending',
-        created_by: req.user!.id,
-        created_at: new Date(),
-        updated_at: new Date(),
-      })
-      .returning('*');
-
-    // Create inventory movement
-    await trx('inventory_movements').insert({
-      gate_pass_id: inserted.id,
-      movement_type: passType,
-      gazana_quantity: totalGazana,
-      movement_date: new Date(passDate),
-      created_by: req.user!.id,
-      created_at: new Date(),
+  const result = await withTransaction(async (trx) => {
+    const [gatePassId] = await trx('GatePass').insert({
+      PassNumber: passNumber,
+      Type: type,
+      PassDate: passDate,
+      ContractID: contractId || null,
+      CarrierName: carrierName,
+      VehicleNumber: vehicleNumber,
+      DriverName: driverName,
+      Status: 'Draft',
+      Remarks: remarks,
+      CreatedBy: req.user!.id,
     });
 
-    await logAudit('gate_passes', inserted.id, 'insert', null, inserted, req.user!.id);
+    // Handle MySQL return value (array with insertId)
+    const newGatePassId = gatePassId;
 
-    return inserted;
+    // Insert Items
+    if (items && items.length > 0) {
+      const gatePassItems = items.map((item: any) => ({
+        GatePassID: newGatePassId,
+        ItemType: item.itemType,
+        Description: item.description || '', // Fallback if description is empty/not provided
+        Quantity: item.quantity,
+        Unit: item.unit,
+        Collection: item.collection,
+        DesignNo: item.designNo,
+        Component: item.component,
+        Repeat: item.repeat || null,
+        ItemRemarks: item.itemRemarks || null,
+        Yards: item.yards || 0 // Updated to Yards
+      }));
+
+      await trx('GatePassItem').insert(gatePassItems);
+    }
+
+    return newGatePassId; // Return ID
   });
 
-  res.status(201).json({ data: gatePass });
+  // Fetch newly created
+  const id = result;
+
+  res.status(201).json({ message: 'Gate Pass created', id });
 }));
 
+// Replace existing PUT status with generic PUT for update AND status?
+// Or keep separate? The existing PUT /:id/status is specific.
+// I will separate the Full Update PUT /:id from PUT /:id/status or merge them?
+// Generally PUT /:id implies full resource update. I will implement a Full Update handler.
+
 /**
- * PUT /api/gate-passes/:id/finalize
- * Finalize gate pass and trigger billing
+ * DELETE /api/gate-passes/:id
+ * Delete a gate pass and its items
  */
-router.put('/:id/finalize', requireInventoryClerk, asyncHandler(async (req: AuthenticatedRequest, res) => {
-  const gatePassId = parseInt(req.params.id);
+router.delete('/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const id = parseInt(req.params.id);
 
   await withTransaction(async (trx) => {
-    const gatePass = await trx('gate_passes')
-      .where('id', gatePassId)
-      .whereNull('deleted_at')
-      .first();
+    // Items cascade delete usually, but let's be explicit if needed or rely on DB FK
+    // If FK is set to ON DELETE CASCADE, deleting parent is enough.
+    // If not, delete items first. Assuming standard setup, let's delete items first to be safe.
+    await trx('GatePassItem').where('GatePassID', id).del();
+    const deleted = await trx('GatePass').where('GatePassID', id).del();
 
-    if (!gatePass) {
-      throw new Error('Gate pass not found');
+    if (!deleted) {
+      throw new Error('Gate Pass not found or already deleted');
     }
-
-    if (gatePass.status === 'finalized') {
-      throw new Error('Gate pass is already finalized');
-    }
-
-    // Check if all linked production is complete
-    if (gatePass.contract_id) {
-      const incompleteProduction = await trx('production_entries')
-        .join('designs', 'production_entries.design_id', 'designs.id')
-        .where('designs.contract_id', gatePass.contract_id)
-        .where('production_entries.is_billed', false)
-        .whereNull('production_entries.deleted_at')
-        .count('production_entries.id as count')
-        .first();
-
-      if (parseInt(incompleteProduction?.count || '0') > 0) {
-        throw new Error('Cannot finalize gate pass: incomplete production entries exist');
-      }
-    }
-
-    const oldValues = { ...gatePass };
-
-    // Update gate pass status
-    await trx('gate_passes')
-      .where('id', gatePassId)
-      .update({
-        status: 'finalized',
-        finalized_by: req.user!.id,
-        finalized_at: new Date(),
-        updated_at: new Date(),
-      });
-
-    // Mark related production as billed
-    if (gatePass.contract_id) {
-      await trx('production_entries')
-        .join('designs', 'production_entries.design_id', 'designs.id')
-        .where('designs.contract_id', gatePass.contract_id)
-        .update({ is_billed: true });
-    }
-
-    await logAudit(
-      'gate_passes',
-      gatePassId,
-      'update',
-      oldValues,
-      { ...oldValues, status: 'finalized' },
-      req.user!.id
-    );
   });
 
-  res.json({ message: 'Gate pass finalized successfully. Related production marked as billed.' });
+  res.json({ message: 'Gate Pass deleted successfully' });
 }));
 
 /**
- * GET /api/gate-passes/inventory-summary
- * Get current inventory summary
+ * PUT /api/gate-passes/:id
+ * Update an existing gate pass (Header + Items)
  */
-router.get('/inventory-summary', asyncHandler(async (req: AuthenticatedRequest, res) => {
-  const summary = await db('inventory_movements')
-    .join('gate_passes', 'inventory_movements.gate_pass_id', 'gate_passes.id')
-    .where('gate_passes.status', 'finalized')
-    .groupBy('gate_passes.party_name')
-    .select(
-      'gate_passes.party_name',
-      db.raw(`
-        SUM(CASE WHEN inventory_movements.movement_type = 'in' 
-            THEN inventory_movements.gazana_quantity 
-            ELSE 0 END) as total_received
-      `),
-      db.raw(`
-        SUM(CASE WHEN inventory_movements.movement_type = 'out' 
-            THEN inventory_movements.gazana_quantity 
-            ELSE 0 END) as total_consumed
-      `),
-      db.raw(`
-        SUM(CASE WHEN inventory_movements.movement_type = 'in' 
-            THEN inventory_movements.gazana_quantity 
-            ELSE -inventory_movements.gazana_quantity END) as remaining_gazana
-      `)
-    )
-    .orderBy('gate_passes.party_name');
+router.put('/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const id = parseInt(req.params.id);
+  const {
+    passDate,
+    contractId,
+    carrierName,
+    vehicleNumber,
+    driverName,
+    remarks,
+    items,
+    type // Should type be editable? Probably not, but let's allow basic edits.
+  } = req.body;
 
-  res.json({ data: summary });
+  if (!items || items.length === 0) {
+    return res.status(400).json({ error: 'Items are required' });
+  }
+
+  await withTransaction(async (trx) => {
+    // 1. Update Header
+    const updateFields: any = {
+      PassDate: passDate,
+      ContractID: contractId || null,
+      CarrierName: carrierName,
+      VehicleNumber: vehicleNumber,
+      DriverName: driverName,
+      Remarks: remarks,
+      updated_at: new Date()
+    };
+    if (type) updateFields.Type = type;
+
+    const updated = await trx('GatePass').where('GatePassID', id).update(updateFields);
+    if (!updated) {
+      // If no rows updated, check if it exists
+      const exists = await trx('GatePass').where('GatePassID', id).first();
+      if (!exists) throw new Error('Gate Pass not found');
+    }
+
+    // 2. Replace Items (Delete All + Insert New)
+    await trx('GatePassItem').where('GatePassID', id).del();
+
+    const gatePassItems = items.map((item: any) => ({
+      GatePassID: id,
+      ItemType: item.itemType,
+      Description: item.description || '',
+      Quantity: item.quantity,
+      Unit: item.unit,
+      Collection: item.collection,
+      DesignNo: item.designNo,
+      Component: item.component,
+      Repeat: item.repeat || null,
+      ItemRemarks: item.itemRemarks || null,
+      Yards: item.yards || 0 // Updated to Yards
+    }));
+
+    await trx('GatePassItem').insert(gatePassItems);
+  });
+
+  res.json({ message: 'Gate Pass updated successfully' });
+}));
+
+/**
+ * PUT /api/gate-passes/:id/status
+ * Update status (e.g., Approve, Complete)
+ */
+router.put('/:id/status', asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const id = parseInt(req.params.id);
+  const { status } = req.body;
+
+  if (!['Draft', 'Approved', 'Completed', 'Cancelled'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+
+  await db('GatePass')
+    .where('GatePassID', id)
+    .update({ Status: status, updated_at: new Date() });
+
+  res.json({ message: 'Status updated' });
 }));
 
 export { router as gatePassRouter };

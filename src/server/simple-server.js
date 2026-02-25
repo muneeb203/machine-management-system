@@ -44,25 +44,34 @@ const users = [
 let contracts = [
   {
     id: 1,
-    contractNumber: 'CT-2024-001',
+    contractNumber: 1001,
     partyName: 'ABC Textiles Ltd',
     poNumber: 'PO-12345',
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
-    collectionName: 'Spring Collection 2024',
+    contractDate: '2024-01-01',
     status: 'active',
+    items: [
+      {
+        h2hOGP: 10,
+        wteIGP: 5,
+        itemDescription: 'Sample Item 1',
+        fabric: 'Cotton',
+        color: 'Blue',
+        repeat: 12.5,
+        pieces: 100,
+        yard: 500.5
+      }
+    ],
     createdBy: 1,
     createdAt: new Date()
   },
   {
     id: 2,
-    contractNumber: 'CT-2024-002',
+    contractNumber: 1002,
     partyName: 'XYZ Fashion House',
     poNumber: 'PO-67890',
-    startDate: '2024-02-01',
-    endDate: '2024-11-30',
-    collectionName: 'Summer Line',
+    contractDate: '2024-02-01',
     status: 'active',
+    items: [],
     createdBy: 1,
     createdAt: new Date()
   }
@@ -271,15 +280,35 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
 
 // ==================== CONTRACT MANAGEMENT ====================
 
+
+
 app.get('/api/contracts', authenticateToken, (req, res) => {
-  const userContracts = req.user.role === 'admin' ? contracts : contracts.filter(c => c.status === 'active');
-  res.json({ data: userContracts });
+  // Return format expected by frontend safe parsing
+  res.json({ data: contracts });
+});
+
+// Added GET by ID for View Details
+app.get('/api/contracts/:id', authenticateToken, (req, res) => {
+  const id = parseInt(req.params.id);
+  const contract = contracts.find(c => c.id === id || c.contractNumber === id);
+
+  if (!contract) {
+    return res.status(404).json({ error: 'Contract not found' });
+  }
+  res.json({ data: contract });
 });
 
 app.post('/api/contracts', authenticateToken, requireAdmin, (req, res) => {
+  const lastContract = contracts[contracts.length - 1];
+  const nextId = lastContract ? lastContract.id + 1 : 1;
+  const nextContractNo = lastContract ? lastContract.contractNumber + 1 : 1000;
+
   const newContract = {
-    id: contracts.length + 1,
-    ...req.body,
+    id: nextId,
+    contractNumber: nextContractNo,
+    contractDate: req.body.contractDate,
+    poNumber: req.body.poNumber,
+    items: req.body.items || [], // Store items
     status: 'active',
     createdBy: req.user.id,
     createdAt: new Date()

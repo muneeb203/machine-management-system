@@ -1,0 +1,16 @@
+RewriteEngine On
+
+# 1. API Requests -> Node.js (app.js)
+# Redirects any request starting with "api/" to the Node server
+RewriteRule ^api/(.*)$ app.js [QSA,L]
+
+# 2. Frontend Requests -> Apache (Static Files)
+# If the requested file/directory exists, serve it directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 3. SPA Fallback -> index.html
+# If not an API request and not a real file, serve index.html
+# This allows React Router to handle the routing
+RewriteRule ^ index.html [L]

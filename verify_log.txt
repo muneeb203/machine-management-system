@@ -1,0 +1,19 @@
+[dotenv@17.2.3] injecting env (14) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+E:\convosol\machine-management-system-main\machine-management-system-main\node_modules\ts-node\src\index.ts:859
+    return new TSError(diagnosticText, diagnosticCodes, diagnostics);
+           ^
+TSError: ⨯ Unable to compile TypeScript:
+src/server/routes/contracts.ts(55,25): error TS2304: Cannot find name 'db'.
+
+    at createTSError (E:\convosol\machine-management-system-main\machine-management-system-main\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (E:\convosol\machine-management-system-main\machine-management-system-main\node_modules\ts-node\src\index.ts:863:19)
+    at getOutput (E:\convosol\machine-management-system-main\machine-management-system-main\node_modules\ts-node\src\index.ts:1077:36)
+    at Object.compile (E:\convosol\machine-management-system-main\machine-management-system-main\node_modules\ts-node\src\index.ts:1433:41)
+    at Module.m._compile (E:\convosol\machine-management-system-main\machine-management-system-main\node_modules\ts-node\src\index.ts:1617:30)
+    at node:internal/modules/cjs/loader:1893:10
+    at Object.require.extensions.<computed> [as .ts] (E:\convosol\machine-management-system-main\machine-management-system-main\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+  diagnosticCodes: [ 2304 ]
+}

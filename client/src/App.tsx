@@ -10,14 +10,20 @@ import Dashboard from './pages/Dashboard';
 
 // Import all module pages
 import Contracts from './pages/Contracts';
-import Production from './pages/Production';
+import DailyProduction from './pages/Production';
 import Billing from './pages/Billing';
+import OptimizedBilling from './pages/OptimizedBilling';
 import GatePasses from './pages/GatePasses';
 import Reports from './pages/Reports';
+import Analytics from './pages/Analytics';
 import Admin from './pages/Admin';
 import Machines from './pages/Machines';
 import RateManagement from './pages/RateManagement';
 import UserManagement from './pages/UserManagement';
+import Settings from './pages/Settings';
+import ContractProgress from './pages/ContractProgress';
+import Clipping from './pages/Clipping';
+import Masters from './pages/Masters'; // Added Import
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,10 +91,23 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         } />
 
+        {/* Global Settings */}
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        } />
+
         {/* Contract Management - Admin can create/edit, Operator view-only */}
         <Route path="/contracts" element={
           <ProtectedRoute>
             <Contracts />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/contract-progress" element={
+          <ProtectedRoute>
+            <ContractProgress />
           </ProtectedRoute>
         } />
 
@@ -99,10 +118,17 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         } />
 
+        {/* Master Management */}
+        <Route path="/masters" element={
+          <ProtectedRoute>
+            <Masters />
+          </ProtectedRoute>
+        } />
+
         {/* Daily Production - Admin can edit all, Operator same-day only */}
         <Route path="/production" element={
           <ProtectedRoute requiredRoles={['admin', 'operator']}>
-            <Production />
+            <DailyProduction />
           </ProtectedRoute>
         } />
 
@@ -110,6 +136,13 @@ const AppRoutes: React.FC = () => {
         <Route path="/billing" element={
           <ProtectedRoute>
             <Billing />
+          </ProtectedRoute>
+        } />
+
+        {/* Optimized Billing - Matrix style billing */}
+        <Route path="/optimized-billing" element={
+          <ProtectedRoute>
+            <OptimizedBilling />
           </ProtectedRoute>
         } />
 
@@ -124,6 +157,20 @@ const AppRoutes: React.FC = () => {
         <Route path="/reports" element={
           <ProtectedRoute>
             <Reports />
+          </ProtectedRoute>
+        } />
+
+        {/* Analytics - Old Reports Page renamed */}
+        <Route path="/analytics" element={
+          <ProtectedRoute>
+            <Analytics />
+          </ProtectedRoute>
+        } />
+
+        {/* Clipping - Admin/Operator */}
+        <Route path="/clipping" element={
+          <ProtectedRoute>
+            <Clipping />
           </ProtectedRoute>
         } />
 

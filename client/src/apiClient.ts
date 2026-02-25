@@ -3,15 +3,12 @@ import axios from 'axios';
 // Configure API base URL
 // In production (Vercel), we must use relative path '' to route via proxy
 // In development, we fallback to localhost:3000
-const isVercel = window.location.hostname.includes('vercel.app');
-const API_BASE_URL = isVercel
-    ? ''
-    : (process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000');
+const API_BASE_URL = ''; // Relative path allows proxying via package.json
 
 // Create axios instance with base configuration
 export const api = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 10000,
+    timeout: 30000, // Increased to 30 seconds for slow queries
     headers: {
         'Content-Type': 'application/json',
     },

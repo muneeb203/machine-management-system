@@ -3,13 +3,16 @@ import { config } from '../config';
 
 // Database connection configuration
 const dbConfig = {
-  client: 'postgresql',
+  client: 'mysql2',
   connection: {
     host: config.database.host,
     port: config.database.port,
     user: config.database.user,
     password: config.database.password,
     database: config.database.name,
+    // MySQL specific options if needed
+    multipleStatements: true,
+    timezone: 'Z'
   },
   pool: {
     min: 2,
@@ -55,12 +58,16 @@ export const closeConnection = async (): Promise<void> => {
 export const withTransaction = async <T>(
   callback: (trx: knex.Knex.Transaction) => Promise<T>
 ): Promise<T> => {
+  console.log('[DEBUG] DB: starting transaction...');
   const trx = await db.transaction();
   try {
     const result = await callback(trx);
+    console.log('[DEBUG] DB: committing transaction...');
     await trx.commit();
+    console.log('[DEBUG] DB: transaction committed.');
     return result;
   } catch (error) {
+    console.error('[DEBUG] DB: rolling back transaction...', error);
     await trx.rollback();
     throw error;
   }

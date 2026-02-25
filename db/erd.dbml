@@ -1,0 +1,107 @@
+Table audit_logs {
+  id int [pk, increment]
+  action varchar
+  table_name varchar
+  record_id varchar
+  old_values text
+  new_values text
+  user_id int
+  ip_address varchar
+  user_agent varchar
+  created_at timestamp
+}
+
+Table contract {
+  ContractID int [pk, increment]
+  ContractNo int [unique]
+  ContractDate date
+  PONumber varchar
+  IsActive boolean
+  Progress varchar
+}
+
+Table contractitem {
+  ContractItemID int [pk, increment]
+  ContractID int [ref: > contract.ContractID]
+  H2H_OGP int
+  WTE_IGP int
+  ItemDescription varchar
+  Fabric varchar
+  Color varchar
+  Repeat decimal
+  Pieces int
+  Yard decimal
+  Tilla int
+  Sequence int
+  Collection varchar
+  DesignNo varchar
+  Component varchar
+  Stitch decimal
+  Rate_per_Repeat decimal
+  Rate_per_Stitch decimal
+  Calculated_Rate decimal
+  Total_Rate decimal
+}
+
+Table gatepass {
+  GatePassID int [pk, increment]
+  PassNumber varchar [unique]
+  Type enum
+  PassDate datetime
+  ContractID int [ref: > contract.ContractID]
+  CarrierName varchar
+  VehicleNumber varchar
+  DriverName varchar
+  Status varchar
+  Remarks text
+  CreatedBy int
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table gatepassitem {
+  ItemID int [pk, increment]
+  GatePassID int [ref: > gatepass.GatePassID]
+  ItemType varchar
+  Description varchar
+  Quantity decimal
+  Unit varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table machine {
+  MachineID int [pk, increment]
+  MachineNumber int [unique]
+  MasterName varchar
+  Status varchar
+  IsActive boolean
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table productionentry {
+  ProductionID int [pk, increment]
+  MachineID int [ref: > machine.MachineID]
+  ContractItemID int [ref: > contractitem.ContractItemID]
+  ProductionDate date
+  Shift varchar
+  Stitches int
+  Repeats int
+  OperatorName varchar
+  Notes text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table knex_migrations {
+  id int [pk, increment]
+  name varchar
+  batch int
+  migration_time timestamp
+}
+
+Table knex_migrations_lock {
+  index int [pk, increment]
+  is_locked int
+}

@@ -1,0 +1,3 @@
+src/server/routes/contractItems.ts(80,39): error TS2339: Property 'count' does not exist on type 'string'.
+src/services/ContractService.ts(682,48): error TS2345: Argument of type '"soft_delete"' is not assignable to parameter of type '"insert" | "update" | "delete" | "override"'.
+src/services/ContractService.ts(695,48): error TS2345: Argument of type '"hard_delete"' is not assignable to parameter of type '"insert" | "update" | "delete" | "override"'.

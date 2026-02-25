@@ -26,9 +26,12 @@ export const errorHandler = (
   let code = error.code || 'INTERNAL_ERROR';
 
   // Handle specific error types
-  if (error.message.includes('duplicate key')) {
+  // MySQL/MariaDB Duplicate Entry
+  if (error.code === 'ER_DUP_ENTRY' || (error as any).errno === 1062 || error.message.includes('Duplicate entry') || error.message.includes('duplicate key')) {
     statusCode = 409;
-    message = 'Resource already exists';
+    message = error.message.includes('Duplicate entry')
+      ? `Resource already exists: ${error.message.split('Duplicate entry')[1].split('for key')[0].trim()}`
+      : 'Resource already exists';
     code = 'DUPLICATE_RESOURCE';
   }
 

@@ -226,9 +226,12 @@ export interface CreateContractRequest {
   partyName: string;
   poNumber?: string;
   gatePassNumber?: string;
-  startDate: string;
-  endDate?: string;
+  contractDate: string; // Changed from startDate
+  contractEndDate?: string; // Changed from endDate
+  contractDuration?: number;
   collectionName?: string;
+  items?: any[]; // Allow items array
+  machineIds?: number[]; // Added for Machine Assignment
 }
 
 export interface CreateDesignRequest {
@@ -247,7 +250,8 @@ export interface CreateDesignRequest {
 
 export interface ProductionEntryRequest {
   machineId: number;
-  designId: number;
+  contractItemId?: number; // New field
+  designId?: number; // Deprecated but kept for backward compat if needed
   productionDate: string;
   shift: 'day' | 'night';
   actualStitches: number;
