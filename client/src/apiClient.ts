@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 // Configure API base URL
-// In production (Vercel), we must use relative path '' to route via proxy
-// In development, we fallback to localhost:3000
-const API_BASE_URL = ''; // Relative path allows proxying via package.json
+// - If REACT_APP_API_URL is set (e.g. colleague's backend URL), use it
+// - Otherwise relative '' so dev proxy (client/package.json proxy → localhost:3000) or production proxy works
+const API_BASE_URL = process.env.REACT_APP_API_URL ?? '';
 
 // Create axios instance with base configuration
 export const api = axios.create({
